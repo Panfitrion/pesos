@@ -238,7 +238,7 @@ h2.titulo-seccion:first-child{margin-top:0;}
     </div>
     <div class="campo" id="campo-pieza">
       <label>Peso por pieza (kg)</label>
-      <input type="number" step="0.001" id="ed-pieza">
+      <input type="number" step="0.0001" id="ed-pieza">
     </div>
     <h2 class="titulo-seccion">Ingredientes (% panadero)</h2>
     <div id="lista-ingredientes"></div>
@@ -378,8 +378,8 @@ function renderOrden(){
     const fila = document.createElement('div');
     fila.className = 'fila-orden';
     fila.innerHTML = `
-      <div class="nombre"><b>${r.nombre}</b><small>${(r.pieza||0).toFixed(3)} kg/pieza</small></div>
-      <div class="masa-calc" id="masa-${clave}">${masa.toFixed(2)} kg</div>
+      <div class="nombre"><b>${r.nombre}</b><small>${(r.pieza||0).toFixed(4)} kg/pieza</small></div>
+      <div class="masa-calc" id="masa-${clave}">${masa.toFixed(4)} kg</div>
       <input type="number" min="0" step="1" inputmode="numeric" value="${piezas||''}" placeholder="0" data-clave="${clave}">
     `;
     cont.appendChild(fila);
@@ -390,7 +390,7 @@ function renderOrden(){
       const val = parseFloat(inp.value)||0;
       orden[clave] = val;
       const r = RECETAS[clave];
-      document.getElementById('masa-'+clave).textContent = (val*(r.pieza||0)).toFixed(2)+' kg';
+      document.getElementById('masa-'+clave).textContent = (val*(r.pieza||0)).toFixed(4)+' kg';
       guardarOrden();
     });
   });
@@ -485,7 +485,7 @@ function renderResultado(resultados, totalesCrudos){
   clavesFinales.forEach(clave=>{
     const r = resultados[clave];
     html += `<details class="receta-resultado card" open>
-      <summary>${r.nombre} <span class="masa">${r.masaTotal.toFixed(2)} kg</span></summary>
+      <summary>${r.nombre} <span class="masa">${r.masaTotal.toFixed(4)} kg</span></summary>
       ${tablaFilas(r.filas)}
     </details>`;
   });
@@ -495,7 +495,7 @@ function renderResultado(resultados, totalesCrudos){
     clavesSub.forEach(clave=>{
       const r = resultados[clave];
       html += `<details class="receta-resultado card" open>
-        <summary>${r.nombre} <span class="masa">${r.masaTotal.toFixed(2)} kg</span></summary>
+        <summary>${r.nombre} <span class="masa">${r.masaTotal.toFixed(4)} kg</span></summary>
         ${tablaFilas(r.filas)}
       </details>`;
     });
@@ -505,7 +505,7 @@ function renderResultado(resultados, totalesCrudos){
   if(nombresCrudos.length){
     html += '<h2 class="titulo-seccion">Insumos crudos — total del día</h2><div class="card"><table class="tabla-pesos"><thead><tr><th>Ingrediente</th><th style="text-align:right">Kg</th></tr></thead><tbody>';
     nombresCrudos.forEach(n=>{
-      html += `<tr><td>${n}</td><td class="num">${totalesCrudos[n].toFixed(2)}</td></tr>`;
+      html += `<tr><td>${n}</td><td class="num">${totalesCrudos[n].toFixed(4)}</td></tr>`;
     });
     html += '</tbody></table></div>';
   }
@@ -517,7 +517,7 @@ function tablaFilas(filas){
   filas.forEach(f=>{
     const clase = f.esRef ? 'ref' : (f.esStarter ? 'starter':'');
     const sufijo = f.esStarter ? ' <span class="pill">cultivo — prepara aparte</span>' : '';
-    h += `<tr class="${clase}"><td>${f.nombre}${sufijo}</td><td class="num">${f.kg.toFixed(2)}</td></tr>`;
+    h += `<tr class="${clase}"><td>${f.nombre}${sufijo}</td><td class="num">${f.kg.toFixed(4)}</td></tr>`;
   });
   h += '</tbody></table>';
   return h;
@@ -533,7 +533,7 @@ function renderListaRecetas(){
   Object.entries(RECETAS).forEach(([clave,r])=>{
     const el = document.createElement('div');
     el.className = 'item-receta';
-    el.innerHTML = `<div><b>${r.nombre}</b><div class="tipo">${r.ing.length} ingrediente(s)${r.esSub?'':' · '+(r.pieza||0).toFixed(3)+' kg/pieza'}</div></div><span class="flecha">›</span>`;
+    el.innerHTML = `<div><b>${r.nombre}</b><div class="tipo">${r.ing.length} ingrediente(s)${r.esSub?'':' · '+(r.pieza||0).toFixed(4)+' kg/pieza'}</div></div><span class="flecha">›</span>`;
     el.addEventListener('click', ()=> abrirEditor(clave));
     (r.esSub ? subs : finales).appendChild(el);
   });
