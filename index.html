@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Panfitrión — Pesos de producción</title>
+<meta name="theme-color" content="#000000">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{
+  --negro:#000000;
+  --negro-suave:#171717;
+  --panel:#1f1f1f;
+  --borde:#2c2c2c;
+  --dorado:#e3c691;
+  --dorado-suave:#c8a96e;
+  --blanco:#ffffff;
+  --gris:#9a9a9a;
+  --rojo:#c0524a;
+  --verde:#7fae7a;
+  --radio:10px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--negro);
+  color:var(--blanco);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+  padding-bottom:90px;
+}
+header.top{
+  position:sticky; top:0; z-index:10;
+  background:var(--negro);
+  border-bottom:1px solid var(--borde);
+  padding:16px 18px 14px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+header.top h1{
+  margin:0; font-size:19px; letter-spacing:1.5px; font-weight:700;
+  text-transform:uppercase;
+}
+header.top h1 span{color:var(--dorado);}
+header.top .fecha{color:var(--gris); font-size:12px;}
+
+nav.tabs{
+  display:flex; gap:0; border-bottom:1px solid var(--borde);
+  background:var(--negro); position:sticky; top:57px; z-index:9;
+  overflow-x:auto;
+}
+nav.tabs button{
+  flex:1; min-width:110px; padding:12px 8px; background:none; border:none;
+  color:var(--gris); font-size:13px; font-weight:600; letter-spacing:.3px;
+  border-bottom:2px solid transparent; cursor:pointer;
+}
+nav.tabs button.activo{color:var(--dorado); border-bottom-color:var(--dorado);}
+
+main{padding:16px; max-width:760px; margin:0 auto;}
+.vista{display:none;}
+.vista.activa{display:block;}
+
+h2.titulo-seccion{
+  font-size:14px; text-transform:uppercase; letter-spacing:1.2px;
+  color:var(--dorado-suave); margin:22px 0 10px;
+}
+h2.titulo-seccion:first-child{margin-top:0;}
+
+.card{
+  background:var(--panel); border:1px solid var(--borde); border-radius:var(--radio);
+  padding:14px; margin-bottom:10px;
+}
+
+/* ---- Orden del día ---- */
+.fila-orden{
+  display:flex; align-items:center; gap:10px; padding:10px 0;
+  border-bottom:1px solid var(--borde);
+}
+.fila-orden:last-child{border-bottom:none;}
+.fila-orden .nombre{flex:1;}
+.fila-orden .nombre b{display:block; font-size:14.5px;}
+.fila-orden .nombre small{color:var(--gris); font-size:11.5px;}
+.fila-orden input[type=number]{
+  width:64px; background:var(--negro-suave); border:1px solid var(--borde);
+  color:var(--blanco); border-radius:8px; padding:9px 6px; text-align:center;
+  font-size:15px;
+}
+.fila-orden input[type=number]:focus{outline:none; border-color:var(--dorado);}
+.fila-orden .masa-calc{width:70px; text-align:right; font-size:12px; color:var(--gris);}
+
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:6px;
+  background:var(--dorado); color:var(--negro); border:none; border-radius:8px;
+  padding:13px 18px; font-size:14.5px; font-weight:700; cursor:pointer;
+  width:100%; letter-spacing:.3px;
+}
+.btn:active{opacity:.85;}
+.btn.secundario{background:transparent; color:var(--dorado); border:1px solid var(--dorado-suave);}
+.btn.chico{width:auto; padding:8px 12px; font-size:13px;}
+.btn.peligro{background:transparent; color:var(--rojo); border:1px solid var(--rojo);}
+
+.barra-fija{
+  position:fixed; bottom:0; left:0; right:0; padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+  background:linear-gradient(0deg,var(--negro) 70%, transparent); z-index:8;
+}
+.barra-fija .contenedor{max-width:760px; margin:0 auto;}
+
+/* ---- Resultado ---- */
+.tabla-pesos{width:100%; border-collapse:collapse;}
+.tabla-pesos th{
+  text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.6px;
+  color:var(--gris); padding:6px 4px; border-bottom:1px solid var(--borde);
+}
+.tabla-pesos td{padding:8px 4px; font-size:14px; border-bottom:1px solid var(--borde);}
+.tabla-pesos td.num{text-align:right; font-variant-numeric:tabular-nums;}
+.tabla-pesos tr.ref td{color:var(--dorado);}
+.tabla-pesos tr.starter td{color:var(--gris); font-style:italic;}
+.tabla-pesos tfoot td{border-top:1px solid var(--dorado-suave); border-bottom:none; font-weight:700; padding-top:9px;}
+
+.receta-resultado summary{
+  cursor:pointer; font-size:15.5px; font-weight:700; padding:2px 0;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.receta-resultado summary .masa{color:var(--dorado); font-weight:700; font-variant-numeric:tabular-nums;}
+.receta-resultado{margin-bottom:8px;}
+.receta-resultado[open] summary{margin-bottom:8px;}
+
+.pill{
+  display:inline-block; background:var(--negro-suave); border:1px solid var(--borde);
+  color:var(--gris); font-size:11px; padding:2px 8px; border-radius:20px; margin-left:6px;
+}
+.vacio{color:var(--gris); font-size:13.5px; text-align:center; padding:30px 10px;}
+
+/* ---- Editor de recetas ---- */
+.lista-recetas .item-receta{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 4px; border-bottom:1px solid var(--borde); cursor:pointer;
+}
+.lista-recetas .item-receta:last-child{border-bottom:none;}
+.lista-recetas .item-receta b{font-size:14.5px;}
+.lista-recetas .item-receta .tipo{font-size:11px; color:var(--gris);}
+.flecha{color:var(--gris); font-size:16px;}
+
+.campo{margin-bottom:12px;}
+.campo label{display:block; font-size:11.5px; color:var(--gris); text-transform:uppercase; letter-spacing:.5px; margin-bottom:5px;}
+.campo input[type=text], .campo input[type=number], .campo select{
+  width:100%; background:var(--negro-suave); border:1px solid var(--borde); color:var(--blanco);
+  border-radius:8px; padding:11px 10px; font-size:15px;
+}
+.campo input:focus, .campo select:focus{outline:none; border-color:var(--dorado);}
+
+.fila-ingrediente{
+  display:flex; gap:8px; align-items:center; padding:8px 0; border-bottom:1px solid var(--borde);
+}
+.fila-ingrediente select.tipo-ing{flex:0 0 92px;}
+.fila-ingrediente select.tipo-ing, .fila-ingrediente input, .fila-ingrediente select{
+  background:var(--negro-suave); border:1px solid var(--borde); color:var(--blanco);
+  border-radius:7px; padding:8px; font-size:13.5px;
+}
+.fila-ingrediente .nombre-ing{flex:1; min-width:0;}
+.fila-ingrediente .pct-ing{width:62px; text-align:right;}
+.fila-ingrediente .quitar{background:none; border:none; color:var(--rojo); font-size:18px; cursor:pointer; padding:0 4px;}
+
+.encabezado-editor{display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;}
+.encabezado-editor h2{margin:0; font-size:18px;}
+.volver{background:none; border:none; color:var(--dorado); font-size:14px; cursor:pointer; padding:6px 0;}
+
+.aviso{
+  background:rgba(227,198,145,.08); border:1px solid var(--dorado-suave); border-radius:8px;
+  padding:10px 12px; font-size:12.5px; color:var(--dorado-suave); margin-bottom:14px; line-height:1.5;
+}
+.toast{
+  position:fixed; bottom:100px; left:50%; transform:translateX(-50%);
+  background:var(--dorado); color:var(--negro); padding:10px 18px; border-radius:20px;
+  font-size:13.5px; font-weight:600; z-index:20; opacity:0; transition:opacity .25s;
+  pointer-events:none;
+}
+.toast.mostrar{opacity:1;}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>PAN<span>FITRIÓN</span></h1>
+  <div class="fecha" id="fecha-hoy"></div>
+</header>
+
+<nav class="tabs">
+  <button data-vista="orden" class="activo">Orden del día</button>
+  <button data-vista="resultado">Pesos</button>
+  <button data-vista="recetas">Recetas</button>
+</nav>
+
+<main>
+
+  <!-- VISTA 1: ORDEN DEL DÍA -->
+  <section class="vista activa" id="vista-orden">
+    <h2 class="titulo-seccion">Piezas a producir hoy</h2>
+    <div class="card">
+      <div id="lista-orden"></div>
+    </div>
+  </section>
+
+  <!-- VISTA 2: RESULTADO -->
+  <section class="vista" id="vista-resultado">
+    <div id="contenido-resultado"><p class="vacio">Aún no has calculado la producción de hoy.<br>Ve a "Orden del día" y captura las piezas.</p></div>
+  </section>
+
+  <!-- VISTA 3: RECETAS (lista) -->
+  <section class="vista" id="vista-recetas">
+    <h2 class="titulo-seccion">Recetas finales</h2>
+    <div class="card lista-recetas" id="lista-finales"></div>
+    <h2 class="titulo-seccion">Subrecetas / prefermentos</h2>
+    <div class="card lista-recetas" id="lista-sub"></div>
+    <div style="margin-top:14px;">
+      <button class="btn secundario" id="btn-nueva-receta">+ Nueva receta</button>
+    </div>
+  </section>
+
+  <!-- VISTA 4: EDITOR DE RECETA -->
+  <section class="vista" id="vista-editor">
+    <div class="encabezado-editor">
+      <button class="volver" id="btn-volver-editor">‹ Recetas</button>
+      <button class="btn peligro chico" id="btn-borrar-receta">Eliminar</button>
+    </div>
+    <div class="campo">
+      <label>Nombre</label>
+      <input type="text" id="ed-nombre">
+    </div>
+    <div class="campo">
+      <label>Tipo</label>
+      <select id="ed-tipo">
+        <option value="final">Receta final (se ordena por piezas)</option>
+        <option value="sub">Subreceta / prefermento (se usa dentro de otras recetas)</option>
+      </select>
+    </div>
+    <div class="campo" id="campo-pieza">
+      <label>Peso por pieza (kg)</label>
+      <input type="number" step="0.001" id="ed-pieza">
+    </div>
+    <h2 class="titulo-seccion">Ingredientes (% panadero)</h2>
+    <div id="lista-ingredientes"></div>
+    <button class="btn secundario chico" id="btn-agregar-ing" style="margin-top:8px;">+ Ingrediente</button>
+    <div style="margin-top:20px;">
+      <button class="btn" id="btn-guardar-receta">Guardar receta</button>
+    </div>
+  </section>
+
+</main>
+
+<div class="barra-fija" id="barra-calcular">
+  <div class="contenedor">
+    <button class="btn" id="btn-calcular">Calcular pesos de hoy</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   DATOS INICIALES — capturados del Excel Panfitrión Producción.
+   "ref" = referencia a otra clave de ALL_RECETAS (se desglosa).
+   "isStarter" = cultivo vivo (Zarita); se suma pero no se desglosa.
+   Revisa pesos por pieza y ajusta lo que no coincida con tu operación real.
+   ============================================================ */
+const DATOS_INICIALES = {
+  // ---------- SUBRECETAS ----------
+  poolish: { nombre:"Poolish", esSub:true,
+    ing:[ {name:"Harina",pct:100}, {name:"Agua",pct:100}, {name:"Levadura",pct:0.1}, {name:"Sal",pct:0.1} ] },
+  country_levain: { nombre:"Country Levain", esSub:true,
+    ing:[ {name:"Harina",pct:75}, {name:"Harina integral",pct:25}, {name:"Agua",pct:97}, {name:"Zarita",pct:15,isStarter:true} ] },
+  masa_base: { nombre:"Masa Base (Rústico Base)", esSub:true,
+    ing:[ {name:"Harina",pct:90}, {name:"Harina integral",pct:10}, {name:"Sal",pct:2.3}, {name:"Agua",pct:64}, {ref:"country_levain",pct:30} ] },
+  mezcla_semillas: { nombre:"Mezcla de Semillas", esSub:true,
+    ing:[ {name:"Agua",pct:100}, {name:"Semillas",pct:100} ] },
+  masa_madre_solida: { nombre:"Masa Madre Sólida", esSub:true,
+    ing:[ {name:"Harina",pct:100}, {name:"Harina integral",pct:0}, {name:"Agua",pct:50}, {name:"Zarita",pct:25,isStarter:true} ] },
+
+  // ---------- RECETAS FINALES ----------
+  ciabatta: { nombre:"Ciabatta", esSub:false, pieza:0.2,
+    ing:[ {name:"Harina",pct:100}, {name:"Sal",pct:2.86}, {name:"Levadura roja",pct:0.35}, {ref:"poolish",pct:85.84}, {name:"Agua 1",pct:53}, {name:"Agua 2",pct:22.22}, {name:"Aceite de oliva",pct:4.29} ] },
+  fougasse: { nombre:"Fougasse", esSub:false, pieza:0.8,
+    ing:[ {ref:"ciabatta",pct:100}, {name:"Aceitunas",pct:5}, {name:"Hierbas",pct:0.45} ] },
+  baguette: { nombre:"Baguette", esSub:false, pieza:0.35,
+    ing:[ {name:"Harina",pct:100}, {name:"Sal",pct:2.36}, {name:"Levadura roja",pct:0.12}, {ref:"poolish",pct:30}, {name:"Zarita",pct:10,isStarter:true}, {name:"Agua",pct:61.63}, {name:"Malta",pct:2.36} ] },
+  epi: { nombre:"Epi / Demi", esSub:false, pieza:0.175,
+    ing:[ {ref:"baguette",pct:100} ] },
+  roles: { nombre:"Roles", esSub:false, pieza:0.09,
+    ing:[ {name:"Harina",pct:100}, {name:"Leche",pct:39}, {name:"Huevo",pct:18}, {name:"Azúcar",pct:10}, {name:"Sal",pct:1}, {name:"Mantequilla",pct:18}, {name:"Vainilla",pct:2}, {name:"Levadura dorada",pct:2} ] },
+  croissant: { nombre:"Croissant", esSub:false, pieza:0.085,
+    ing:[ {name:"Harina",pct:100}, {name:"Azúcar",pct:14.5}, {name:"Sal",pct:2.2}, {name:"Levadura dorada",pct:1.47}, {name:"Malta",pct:0.55}, {name:"Mantequilla",pct:7}, {name:"Germen de trigo",pct:0.15}, {ref:"country_levain",pct:10}, {name:"Leche entera",pct:32}, {name:"Agua",pct:16}, {ref:"poolish",pct:10} ] },
+  rustico: { nombre:"Rústico", esSub:false, pieza:0.8,
+    ing:[ {ref:"masa_base",pct:100}, {name:"Germen de trigo tostado",pct:2}, {name:"Agua 2",pct:4} ] },
+  multigrano: { nombre:"Multigrano", esSub:false, pieza:0.8,
+    ing:[ {ref:"masa_base",pct:100}, {ref:"mezcla_semillas",pct:12} ] },
+  chocolate: { nombre:"Pan de chocolate", esSub:false, pieza:0.25,
+    ing:[ {name:"Harina",pct:100}, {name:"Levadura",pct:0.3}, {name:"Sal",pct:2.23}, {name:"Cocoa",pct:6}, {name:"Chispas de chocolate",pct:20}, {name:"Miel",pct:18}, {name:"Mantequilla",pct:5}, {name:"Vainilla",pct:1}, {name:"Agua",pct:66}, {name:"Zarita",pct:20,isStarter:true} ] },
+  pizza: { nombre:"Pizza", esSub:false, pieza:0.45,
+    ing:[ {name:"Harina",pct:100}, {name:"Levadura",pct:0.18}, {name:"Agua",pct:68}, {name:"Sal",pct:2}, {name:"Aceite de oliva",pct:2.5} ] },
+  saborizadas_base: { nombre:"Saborizadas (base)", esSub:true,
+    ing:[ {name:"Harina",pct:100}, {name:"Agua",pct:60}, {name:"Sal",pct:2.35}, {name:"Zarita",pct:50,isStarter:true} ] },
+  romero_chocolate: { nombre:"Romero / Chocolate", esSub:false, pieza:0.8,
+    ing:[ {ref:"saborizadas_base",pct:100}, {name:"Romero",pct:0}, {name:"Chocolate",pct:0} ] },
+  aceitunas_romero: { nombre:"Aceitunas / Romero", esSub:false, pieza:0.6,
+    ing:[ {ref:"saborizadas_base",pct:100}, {name:"Aceitunas",pct:0}, {name:"Romero",pct:0} ] },
+  arandanos_chocolate: { nombre:"Arándanos y chocolate", esSub:false, pieza:0.1,
+    ing:[ {ref:"masa_base",pct:120}, {name:"Chocolate 58% picado",pct:6}, {name:"Romero",pct:2}, {name:"Jengibre",pct:0} ] },
+  aceitunas_romero_2: { nombre:"Aceitunas y romero (masa base)", esSub:false, pieza:0.1,
+    ing:[ {ref:"masa_base",pct:120}, {name:"Romero picado",pct:1.5}, {name:"Aceitunas",pct:12}, {name:"Parmesano / Ajo confitado",pct:0} ] },
+  nuez_pasas: { nombre:"Nuez y Pasas", esSub:false, pieza:0.8,
+    ing:[ {name:"Harina",pct:65}, {name:"Harina integral",pct:35}, {name:"Harina centeno",pct:0}, {name:"Agua",pct:81}, {name:"Sal",pct:2.7}, {name:"Nuez",pct:20}, {name:"Pasas",pct:25}, {ref:"masa_madre_solida",pct:50} ] },
+};
+
+const CLAVE_DATOS = "panfitrion_recetas_v1";
+const CLAVE_ORDEN = "panfitrion_orden_v1";
+
+function cargarDatos(){
+  const guardado = localStorage.getItem(CLAVE_DATOS);
+  if(guardado){
+    try{ return JSON.parse(guardado); }catch(e){ /* sigue con datos iniciales */ }
+  }
+  return JSON.parse(JSON.stringify(DATOS_INICIALES));
+}
+function guardarDatos(){ localStorage.setItem(CLAVE_DATOS, JSON.stringify(RECETAS)); }
+function cargarOrden(){
+  const g = localStorage.getItem(CLAVE_ORDEN);
+  if(g){ try{ return JSON.parse(g); }catch(e){} }
+  return {};
+}
+function guardarOrden(){ localStorage.setItem(CLAVE_ORDEN, JSON.stringify(orden)); }
+
+let RECETAS = cargarDatos();
+let orden = cargarOrden(); // {clave: numPiezas}
+let claveEditando = null;
+let esNuevaReceta = false;
+
+/* ---------- Navegación entre vistas ---------- */
+document.querySelectorAll('nav.tabs button').forEach(btn=>{
+  btn.addEventListener('click', ()=> irAVista(btn.dataset.vista));
+});
+function irAVista(nombre){
+  document.querySelectorAll('.vista').forEach(v=>v.classList.remove('activa'));
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.remove('activo'));
+  document.getElementById('vista-'+nombre).classList.add('activa');
+  const tabBtn = document.querySelector('nav.tabs button[data-vista="'+nombre+'"]');
+  if(tabBtn) tabBtn.classList.add('activo');
+  document.getElementById('barra-calcular').style.display = (nombre==='orden') ? 'block':'none';
+  if(nombre==='recetas') renderListaRecetas();
+}
+document.getElementById('barra-calcular').style.display='block';
+
+function mostrarToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('mostrar');
+  setTimeout(()=>t.classList.remove('mostrar'), 1800);
+}
+
+/* ---------- Fecha ---------- */
+document.getElementById('fecha-hoy').textContent = new Date().toLocaleDateString('es-MX',{weekday:'short',day:'numeric',month:'short'});
+
+/* ============================================================
+   VISTA: ORDEN DEL DÍA
+   ============================================================ */
+function renderOrden(){
+  const cont = document.getElementById('lista-orden');
+  cont.innerHTML = '';
+  const finales = Object.entries(RECETAS).filter(([k,r])=>!r.esSub);
+  if(finales.length===0){
+    cont.innerHTML = '<p class="vacio">No hay recetas finales. Agrega una en la pestaña Recetas.</p>';
+    return;
+  }
+  finales.forEach(([clave,r])=>{
+    const piezas = orden[clave] || 0;
+    const masa = (piezas * (r.pieza||0));
+    const fila = document.createElement('div');
+    fila.className = 'fila-orden';
+    fila.innerHTML = `
+      <div class="nombre"><b>${r.nombre}</b><small>${(r.pieza||0).toFixed(3)} kg/pieza</small></div>
+      <div class="masa-calc" id="masa-${clave}">${masa.toFixed(2)} kg</div>
+      <input type="number" min="0" step="1" inputmode="numeric" value="${piezas||''}" placeholder="0" data-clave="${clave}">
+    `;
+    cont.appendChild(fila);
+  });
+  cont.querySelectorAll('input[type=number]').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const clave = inp.dataset.clave;
+      const val = parseFloat(inp.value)||0;
+      orden[clave] = val;
+      const r = RECETAS[clave];
+      document.getElementById('masa-'+clave).textContent = (val*(r.pieza||0)).toFixed(2)+' kg';
+      guardarOrden();
+    });
+  });
+}
+renderOrden();
+
+document.getElementById('btn-calcular').addEventListener('click', ()=>{
+  calcularProduccion();
+  irAVista('resultado');
+});
+
+/* ============================================================
+   MOTOR DE CÁLCULO — porcentaje panadero con recetas anidadas
+   ============================================================ */
+function calcularProduccion(){
+  // 1. Grafo de dependencias (clave -> claves que referencia)
+  const grafo = {};
+  Object.keys(RECETAS).forEach(k=> grafo[k] = []);
+  Object.entries(RECETAS).forEach(([k,r])=>{
+    r.ing.forEach(i=>{ if(i.ref) grafo[k].push(i.ref); });
+  });
+  // in-degree = # de claves distintas que referencian a esta clave
+  const referenciadoPor = {}; // clave -> [claves que la referencian]
+  Object.keys(RECETAS).forEach(k=> referenciadoPor[k] = new Set());
+  Object.entries(RECETAS).forEach(([k,r])=>{
+    r.ing.forEach(i=>{ if(i.ref) referenciadoPor[i.ref].add(k); });
+  });
+  const pendientes = {}; // clave -> cuántos referenciadores faltan por procesar
+  Object.keys(RECETAS).forEach(k=> pendientes[k] = referenciadoPor[k].size);
+
+  // 2. Demanda inicial (kg) a partir de piezas capturadas
+  const demanda = {};
+  Object.keys(RECETAS).forEach(k=> demanda[k]=0);
+  Object.entries(orden).forEach(([clave,piezas])=>{
+    if(RECETAS[clave] && piezas>0){
+      demanda[clave] += piezas * (RECETAS[clave].pieza||0);
+    }
+  });
+
+  // 3. Cola inicial: nodos sin referenciadores pendientes
+  let cola = Object.keys(RECETAS).filter(k=> pendientes[k]===0);
+  const resultados = {}; // clave -> {masaTotal, harinaEq, filas:[{nombre,kg,esRef,esStarter}]}
+  const totalesCrudos = {}; // nombre ingrediente crudo -> kg acumulado (global)
+  const procesados = new Set();
+  let guard = 0;
+
+  while(cola.length && guard < 500){
+    guard++;
+    const clave = cola.shift();
+    if(procesados.has(clave)) continue;
+    procesados.add(clave);
+    const receta = RECETAS[clave];
+    const masaTotal = demanda[clave];
+    const totalPct = receta.ing.reduce((s,i)=>s+(parseFloat(i.pct)||0),0);
+    const filas = [];
+    if(masaTotal > 0.0001 && totalPct > 0){
+      const harinaEq = masaTotal / (totalPct/100);
+      receta.ing.forEach(i=>{
+        const pct = parseFloat(i.pct)||0;
+        const kg = harinaEq * (pct/100);
+        if(i.ref){
+          filas.push({nombre: RECETAS[i.ref] ? RECETAS[i.ref].nombre : i.ref, kg, esRef:true});
+          demanda[i.ref] = (demanda[i.ref]||0) + kg;
+        } else {
+          filas.push({nombre:i.name, kg, esStarter: !!i.isStarter});
+          totalesCrudos[i.name] = (totalesCrudos[i.name]||0) + kg;
+        }
+      });
+      resultados[clave] = { nombre: receta.nombre, esSub: receta.esSub, masaTotal, filas };
+    }
+    // liberar hijos
+    (grafo[clave]||[]).forEach(hijo=>{
+      pendientes[hijo]--;
+      if(pendientes[hijo]<=0 && !procesados.has(hijo)) cola.push(hijo);
+    });
+  }
+
+  renderResultado(resultados, totalesCrudos);
+}
+
+function renderResultado(resultados, totalesCrudos){
+  const cont = document.getElementById('contenido-resultado');
+  const clavesFinales = Object.keys(resultados).filter(k=> !RECETAS[k].esSub && resultados[k].masaTotal>0.0001);
+  const clavesSub = Object.keys(resultados).filter(k=> RECETAS[k].esSub && resultados[k].masaTotal>0.0001);
+
+  if(clavesFinales.length===0){
+    cont.innerHTML = '<p class="vacio">Captura piezas en "Orden del día" y presiona "Calcular pesos de hoy".</p>';
+    return;
+  }
+
+  let html = '<h2 class="titulo-seccion">Pesaje por receta</h2>';
+  clavesFinales.forEach(clave=>{
+    const r = resultados[clave];
+    html += `<details class="receta-resultado card" open>
+      <summary>${r.nombre} <span class="masa">${r.masaTotal.toFixed(2)} kg</span></summary>
+      ${tablaFilas(r.filas)}
+    </details>`;
+  });
+
+  if(clavesSub.length){
+    html += '<h2 class="titulo-seccion">Prefermentos del día (suma de todas las recetas)</h2>';
+    clavesSub.forEach(clave=>{
+      const r = resultados[clave];
+      html += `<details class="receta-resultado card" open>
+        <summary>${r.nombre} <span class="masa">${r.masaTotal.toFixed(2)} kg</span></summary>
+        ${tablaFilas(r.filas)}
+      </details>`;
+    });
+  }
+
+  const nombresCrudos = Object.keys(totalesCrudos).sort();
+  if(nombresCrudos.length){
+    html += '<h2 class="titulo-seccion">Insumos crudos — total del día</h2><div class="card"><table class="tabla-pesos"><thead><tr><th>Ingrediente</th><th style="text-align:right">Kg</th></tr></thead><tbody>';
+    nombresCrudos.forEach(n=>{
+      html += `<tr><td>${n}</td><td class="num">${totalesCrudos[n].toFixed(2)}</td></tr>`;
+    });
+    html += '</tbody></table></div>';
+  }
+
+  cont.innerHTML = html;
+}
+function tablaFilas(filas){
+  let h = '<table class="tabla-pesos"><thead><tr><th>Ingrediente</th><th style="text-align:right">Kg</th></tr></thead><tbody>';
+  filas.forEach(f=>{
+    const clase = f.esRef ? 'ref' : (f.esStarter ? 'starter':'');
+    const sufijo = f.esStarter ? ' <span class="pill">cultivo — prepara aparte</span>' : '';
+    h += `<tr class="${clase}"><td>${f.nombre}${sufijo}</td><td class="num">${f.kg.toFixed(2)}</td></tr>`;
+  });
+  h += '</tbody></table>';
+  return h;
+}
+
+/* ============================================================
+   VISTA: LISTA DE RECETAS
+   ============================================================ */
+function renderListaRecetas(){
+  const finales = document.getElementById('lista-finales');
+  const subs = document.getElementById('lista-sub');
+  finales.innerHTML = ''; subs.innerHTML = '';
+  Object.entries(RECETAS).forEach(([clave,r])=>{
+    const el = document.createElement('div');
+    el.className = 'item-receta';
+    el.innerHTML = `<div><b>${r.nombre}</b><div class="tipo">${r.ing.length} ingrediente(s)${r.esSub?'':' · '+(r.pieza||0).toFixed(3)+' kg/pieza'}</div></div><span class="flecha">›</span>`;
+    el.addEventListener('click', ()=> abrirEditor(clave));
+    (r.esSub ? subs : finales).appendChild(el);
+  });
+  if(!finales.children.length) finales.innerHTML='<p class="vacio">Sin recetas finales.</p>';
+  if(!subs.children.length) subs.innerHTML='<p class="vacio">Sin subrecetas.</p>';
+}
+
+document.getElementById('btn-nueva-receta').addEventListener('click', ()=>{
+  esNuevaReceta = true;
+  claveEditando = null;
+  abrirEditorVacio();
+});
+document.getElementById('btn-volver-editor').addEventListener('click', ()=> irAVista('recetas'));
+
+/* ============================================================
+   EDITOR DE RECETA
+   ============================================================ */
+let ingredientesEdit = [];
+
+function abrirEditor(clave){
+  esNuevaReceta = false;
+  claveEditando = clave;
+  const r = RECETAS[clave];
+  document.getElementById('ed-nombre').value = r.nombre;
+  document.getElementById('ed-tipo').value = r.esSub ? 'sub' : 'final';
+  document.getElementById('ed-pieza').value = r.pieza || '';
+  document.getElementById('campo-pieza').style.display = r.esSub ? 'none':'block';
+  ingredientesEdit = JSON.parse(JSON.stringify(r.ing));
+  renderIngredientesEdit();
+  document.getElementById('btn-borrar-receta').style.display = 'inline-flex';
+  irAVistaEditor();
+}
+function abrirEditorVacio(){
+  document.getElementById('ed-nombre').value = '';
+  document.getElementById('ed-tipo').value = 'final';
+  document.getElementById('ed-pieza').value = '';
+  document.getElementById('campo-pieza').style.display = 'block';
+  ingredientesEdit = [{name:'Harina',pct:100}];
+  renderIngredientesEdit();
+  document.getElementById('btn-borrar-receta').style.display = 'none';
+  irAVistaEditor();
+}
+function irAVistaEditor(){
+  document.querySelectorAll('.vista').forEach(v=>v.classList.remove('activa'));
+  document.getElementById('vista-editor').classList.add('activa');
+  document.getElementById('barra-calcular').style.display = 'none';
+}
+document.getElementById('ed-tipo').addEventListener('change', (e)=>{
+  document.getElementById('campo-pieza').style.display = e.target.value==='sub' ? 'none':'block';
+});
+
+function opcionesReferencia(claveActual){
+  return Object.entries(RECETAS)
+    .filter(([k])=> k!==claveActual)
+    .map(([k,r])=>`<option value="${k}">${r.nombre}</option>`).join('');
+}
+
+function renderIngredientesEdit(){
+  const cont = document.getElementById('lista-ingredientes');
+  cont.innerHTML = '';
+  ingredientesEdit.forEach((ing, idx)=>{
+    const fila = document.createElement('div');
+    fila.className = 'fila-ingrediente';
+    const esRef = !!ing.ref;
+    fila.innerHTML = `
+      <select class="tipo-ing" data-idx="${idx}" data-campo="tipo">
+        <option value="crudo" ${!esRef?'selected':''}>Ingrediente</option>
+        <option value="ref" ${esRef?'selected':''}>Otra receta</option>
+      </select>
+      ${esRef
+        ? `<select class="nombre-ing" data-idx="${idx}" data-campo="ref">${opcionesReferencia(claveEditando)}</select>`
+        : `<input type="text" class="nombre-ing" data-idx="${idx}" data-campo="name" value="${ing.name||''}" placeholder="Nombre">`
+      }
+      <input type="number" step="0.01" class="pct-ing" data-idx="${idx}" data-campo="pct" value="${ing.pct}">
+      <button class="quitar" data-idx="${idx}">×</button>
+    `;
+    if(esRef){
+      fila.querySelector('select.nombre-ing').value = ing.ref;
+    }
+    cont.appendChild(fila);
+  });
+  cont.querySelectorAll('[data-campo="tipo"]').forEach(sel=>{
+    sel.addEventListener('change', (e)=>{
+      const idx = +e.target.dataset.idx;
+      const pct = ingredientesEdit[idx].pct;
+      ingredientesEdit[idx] = e.target.value==='ref'
+        ? {ref:Object.keys(RECETAS).find(k=>k!==claveEditando)||'', pct}
+        : {name:'', pct};
+      renderIngredientesEdit();
+    });
+  });
+  cont.querySelectorAll('[data-campo="name"]').forEach(inp=>{
+    inp.addEventListener('input', (e)=>{ ingredientesEdit[+e.target.dataset.idx].name = e.target.value; });
+  });
+  cont.querySelectorAll('[data-campo="ref"]').forEach(sel=>{
+    sel.addEventListener('change', (e)=>{ ingredientesEdit[+e.target.dataset.idx].ref = e.target.value; });
+  });
+  cont.querySelectorAll('[data-campo="pct"]').forEach(inp=>{
+    inp.addEventListener('input', (e)=>{ ingredientesEdit[+e.target.dataset.idx].pct = parseFloat(e.target.value)||0; });
+  });
+  cont.querySelectorAll('.quitar').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      ingredientesEdit.splice(+e.target.dataset.idx,1);
+      renderIngredientesEdit();
+    });
+  });
+}
+
+document.getElementById('btn-agregar-ing').addEventListener('click', ()=>{
+  ingredientesEdit.push({name:'', pct:0});
+  renderIngredientesEdit();
+});
+
+document.getElementById('btn-guardar-receta').addEventListener('click', ()=>{
+  const nombre = document.getElementById('ed-nombre').value.trim();
+  if(!nombre){ mostrarToast('Falta el nombre de la receta'); return; }
+  const esSub = document.getElementById('ed-tipo').value === 'sub';
+  const pieza = parseFloat(document.getElementById('ed-pieza').value)||0;
+  const ingLimpios = ingredientesEdit.filter(i=> i.ref || (i.name && i.name.trim()!==''));
+
+  let clave = claveEditando;
+  if(esNuevaReceta || !clave){
+    clave = nombre.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'') || ('receta_'+Date.now());
+    let base = clave, n=2;
+    while(RECETAS[clave]) { clave = base+'_'+n; n++; }
+  }
+  RECETAS[clave] = { nombre, esSub, pieza: esSub?undefined:pieza, ing: ingLimpios };
+  guardarDatos();
+  mostrarToast('Receta guardada');
+  claveEditando = clave; esNuevaReceta = false;
+  irAVista('recetas');
+  renderOrden();
+});
+
+document.getElementById('btn-borrar-receta').addEventListener('click', ()=>{
+  if(!claveEditando) return;
+  if(!confirm('¿Eliminar "'+RECETAS[claveEditando].nombre+'"? Si otra receta la usa como referencia, quedará rota.')) return;
+  delete RECETAS[claveEditando];
+  delete orden[claveEditando];
+  guardarDatos(); guardarOrden();
+  mostrarToast('Receta eliminada');
+  irAVista('recetas');
+  renderOrden();
+});
+
+/* ============================================================
+   PWA — registro de service worker
+   ============================================================ */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
