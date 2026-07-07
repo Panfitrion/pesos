@@ -214,8 +214,9 @@ h2.titulo-seccion:first-child{margin-top:0;}
     <div class="card lista-recetas" id="lista-finales"></div>
     <h2 class="titulo-seccion">Subrecetas / prefermentos</h2>
     <div class="card lista-recetas" id="lista-sub"></div>
-    <div style="margin-top:14px;">
+    <div style="margin-top:14px; display:flex; gap:8px; flex-direction:column;">
       <button class="btn secundario" id="btn-nueva-receta">+ Nueva receta</button>
+      <button class="btn secundario" id="btn-restaurar" style="color:var(--gris); border-color:var(--borde);">Restaurar recetas originales del Excel</button>
     </div>
   </section>
 
@@ -268,9 +269,13 @@ h2.titulo-seccion:first-child{margin-top:0;}
 const DATOS_INICIALES = {
   // ---------- SUBRECETAS ----------
   poolish: { nombre:"Poolish", esSub:true,
-    ing:[ {name:"Harina",pct:100}, {name:"Agua",pct:100}, {name:"Levadura",pct:0.1}, {name:"Sal",pct:0.1} ] },
+    ing:[ {name:"Harina Hoja de plata",pct:100}, {name:"Agua",pct:100}, {name:"Levadura",pct:0.1}, {name:"Sal",pct:0.1} ] },
+  lazarita_am: { nombre:"LaZarita AM", esSub:true,
+    ing:[ {name:"Harina Hoja de plata",pct:100}, {name:"Agua",pct:100}, {name:"LaZarita PM",pct:40,isStarter:true} ] },
+  lazarita_pm: { nombre:"LaZarita PM", esSub:true,
+    ing:[ {name:"Harina Hoja de plata",pct:100}, {name:"Agua",pct:100}, {name:"LaZarita AM",pct:40,isStarter:true} ] },
   country_levain: { nombre:"Country Levain", esSub:true,
-    ing:[ {name:"Harina",pct:75}, {name:"Harina integral",pct:25}, {name:"Agua",pct:97}, {name:"Zarita",pct:15,isStarter:true} ] },
+    ing:[ {name:"Harina Hoja de plata",pct:75}, {name:"Harina integral",pct:25}, {name:"Agua",pct:97}, {ref:"lazarita_am",pct:15} ] },
   masa_base: { nombre:"Masa Base (Rústico Base)", esSub:true,
     ing:[ {name:"Harina",pct:90}, {name:"Harina integral",pct:10}, {name:"Sal",pct:2.3}, {name:"Agua",pct:64}, {ref:"country_levain",pct:30} ] },
   mezcla_semillas: { nombre:"Mezcla de Semillas", esSub:true,
@@ -281,36 +286,20 @@ const DATOS_INICIALES = {
   // ---------- RECETAS FINALES ----------
   ciabatta: { nombre:"Ciabatta", esSub:false, pieza:0.2,
     ing:[ {name:"Harina",pct:100}, {name:"Sal",pct:2.86}, {name:"Levadura roja",pct:0.35}, {ref:"poolish",pct:85.84}, {name:"Agua 1",pct:53}, {name:"Agua 2",pct:22.22}, {name:"Aceite de oliva",pct:4.29} ] },
-  fougasse: { nombre:"Fougasse", esSub:false, pieza:0.8,
-    ing:[ {ref:"ciabatta",pct:100}, {name:"Aceitunas",pct:5}, {name:"Hierbas",pct:0.45} ] },
   baguette: { nombre:"Baguette", esSub:false, pieza:0.35,
-    ing:[ {name:"Harina",pct:100}, {name:"Sal",pct:2.36}, {name:"Levadura roja",pct:0.12}, {ref:"poolish",pct:30}, {name:"Zarita",pct:10,isStarter:true}, {name:"Agua",pct:61.63}, {name:"Malta",pct:2.36} ] },
-  epi: { nombre:"Epi / Demi", esSub:false, pieza:0.175,
-    ing:[ {ref:"baguette",pct:100} ] },
-  roles: { nombre:"Roles", esSub:false, pieza:0.09,
-    ing:[ {name:"Harina",pct:100}, {name:"Leche",pct:39}, {name:"Huevo",pct:18}, {name:"Azúcar",pct:10}, {name:"Sal",pct:1}, {name:"Mantequilla",pct:18}, {name:"Vainilla",pct:2}, {name:"Levadura dorada",pct:2} ] },
+    ing:[ {name:"Harina Hoja de plata",pct:100}, {name:"Harina integral",pct:0}, {name:"Sal",pct:1.5}, {name:"Levadura roja",pct:0.12}, {ref:"poolish",pct:30}, {ref:"lazarita_pm",pct:10}, {name:"Agua",pct:62}, {name:"Malta",pct:2.36}, {name:"Ac. Ascórbico",pct:0.003} ] },
+  demi: { nombre:"Demi", esSub:false, pieza:0.175,
+    ing:[ {name:"Harina Hoja de plata",pct:100}, {name:"Harina integral",pct:0}, {name:"Sal",pct:1.5}, {name:"Levadura roja",pct:0.12}, {ref:"poolish",pct:30}, {ref:"lazarita_pm",pct:10}, {name:"Agua",pct:62}, {name:"Malta",pct:2.36}, {name:"Ac. Ascórbico",pct:0.003} ] },
   croissant: { nombre:"Croissant", esSub:false, pieza:0.085,
-    ing:[ {name:"Harina",pct:100}, {name:"Azúcar",pct:14.5}, {name:"Sal",pct:2.2}, {name:"Levadura dorada",pct:1.47}, {name:"Malta",pct:0.55}, {name:"Mantequilla",pct:7}, {name:"Germen de trigo",pct:0.15}, {ref:"country_levain",pct:10}, {name:"Leche entera",pct:32}, {name:"Agua",pct:16}, {ref:"poolish",pct:10} ] },
+    ing:[ {name:"Harina",pct:100}, {name:"Azúcar",pct:14.5}, {name:"Sal",pct:2.2}, {name:"Levadura dorada",pct:2}, {name:"Malta",pct:0.55}, {name:"Mantequilla",pct:7}, {name:"Germen de trigo",pct:0.15}, {ref:"country_levain",pct:10}, {name:"Leche entera",pct:32}, {name:"Agua",pct:16}, {ref:"poolish",pct:10} ] },
   rustico: { nombre:"Rústico", esSub:false, pieza:0.8,
     ing:[ {ref:"masa_base",pct:100}, {name:"Germen de trigo tostado",pct:2}, {name:"Agua 2",pct:4} ] },
   multigrano: { nombre:"Multigrano", esSub:false, pieza:0.8,
     ing:[ {ref:"masa_base",pct:100}, {ref:"mezcla_semillas",pct:12} ] },
   chocolate: { nombre:"Pan de chocolate", esSub:false, pieza:0.25,
     ing:[ {name:"Harina",pct:100}, {name:"Levadura",pct:0.3}, {name:"Sal",pct:2.23}, {name:"Cocoa",pct:6}, {name:"Chispas de chocolate",pct:20}, {name:"Miel",pct:18}, {name:"Mantequilla",pct:5}, {name:"Vainilla",pct:1}, {name:"Agua",pct:66}, {name:"Zarita",pct:20,isStarter:true} ] },
-  pizza: { nombre:"Pizza", esSub:false, pieza:0.45,
-    ing:[ {name:"Harina",pct:100}, {name:"Levadura",pct:0.18}, {name:"Agua",pct:68}, {name:"Sal",pct:2}, {name:"Aceite de oliva",pct:2.5} ] },
-  saborizadas_base: { nombre:"Saborizadas (base)", esSub:true,
-    ing:[ {name:"Harina",pct:100}, {name:"Agua",pct:60}, {name:"Sal",pct:2.35}, {name:"Zarita",pct:50,isStarter:true} ] },
-  romero_chocolate: { nombre:"Romero / Chocolate", esSub:false, pieza:0.8,
-    ing:[ {ref:"saborizadas_base",pct:100}, {name:"Romero",pct:0}, {name:"Chocolate",pct:0} ] },
-  aceitunas_romero: { nombre:"Aceitunas / Romero", esSub:false, pieza:0.6,
-    ing:[ {ref:"saborizadas_base",pct:100}, {name:"Aceitunas",pct:0}, {name:"Romero",pct:0} ] },
-  arandanos_chocolate: { nombre:"Arándanos y chocolate", esSub:false, pieza:0.1,
-    ing:[ {ref:"masa_base",pct:120}, {name:"Chocolate 58% picado",pct:6}, {name:"Romero",pct:2}, {name:"Jengibre",pct:0} ] },
-  aceitunas_romero_2: { nombre:"Aceitunas y romero (masa base)", esSub:false, pieza:0.1,
-    ing:[ {ref:"masa_base",pct:120}, {name:"Romero picado",pct:1.5}, {name:"Aceitunas",pct:12}, {name:"Parmesano / Ajo confitado",pct:0} ] },
-  nuez_pasas: { nombre:"Nuez y Pasas", esSub:false, pieza:0.8,
-    ing:[ {name:"Harina",pct:65}, {name:"Harina integral",pct:35}, {name:"Harina centeno",pct:0}, {name:"Agua",pct:81}, {name:"Sal",pct:2.7}, {name:"Nuez",pct:20}, {name:"Pasas",pct:25}, {ref:"masa_madre_solida",pct:50} ] },
+  roles: { nombre:"Roles", esSub:false, pieza:0.09,
+    ing:[ {name:"Harina",pct:100}, {name:"Leche",pct:39}, {name:"Huevo",pct:18}, {name:"Azúcar",pct:10}, {name:"Sal",pct:1}, {name:"Mantequilla",pct:16}, {name:"Vainilla",pct:2}, {name:"Levadura dorada",pct:2} ] },
 };
 
 const CLAVE_DATOS = "panfitrion_recetas_v1";
@@ -468,6 +457,31 @@ function calcularProduccion(){
     });
   }
 
+  // Regla especial: el cultivo se alimenta a diario, así que si hoy se necesita
+  // LaZarita PM, se prepara la misma cantidad de LaZarita AM (1 a 1), aunque
+  // ninguna receta de hoy la use directamente.
+  if(resultados['lazarita_pm'] && RECETAS['lazarita_am']){
+    const extra = resultados['lazarita_pm'].masaTotal;
+    demanda['lazarita_am'] = (demanda['lazarita_am']||0) + extra;
+    const recetaAM = RECETAS['lazarita_am'];
+    const masaTotalAM = demanda['lazarita_am'];
+    const totalPctAM = recetaAM.ing.reduce((s,i)=>s+(parseFloat(i.pct)||0),0);
+    if(masaTotalAM > 0.0001 && totalPctAM > 0){
+      const harinaEqAM = masaTotalAM / (totalPctAM/100);
+      const filasAM = [];
+      recetaAM.ing.forEach(i=>{
+        const pct = parseFloat(i.pct)||0;
+        const kg = harinaEqAM * (pct/100);
+        if(i.ref){
+          filasAM.push({nombre: RECETAS[i.ref] ? RECETAS[i.ref].nombre : i.ref, kg, esRef:true});
+        } else {
+          filasAM.push({nombre:i.name, kg, esStarter: !!i.isStarter});
+        }
+      });
+      resultados['lazarita_am'] = { nombre: recetaAM.nombre, esSub:true, masaTotal: masaTotalAM, filas: filasAM };
+    }
+  }
+
   renderResultado(resultados, totalesCrudos);
 }
 
@@ -499,15 +513,6 @@ function renderResultado(resultados, totalesCrudos){
         ${tablaFilas(r.filas)}
       </details>`;
     });
-  }
-
-  const nombresCrudos = Object.keys(totalesCrudos).sort();
-  if(nombresCrudos.length){
-    html += '<h2 class="titulo-seccion">Insumos crudos — total del día</h2><div class="card"><table class="tabla-pesos"><thead><tr><th>Ingrediente</th><th style="text-align:right">Kg</th></tr></thead><tbody>';
-    nombresCrudos.forEach(n=>{
-      html += `<tr><td>${n}</td><td class="num">${totalesCrudos[n].toFixed(3)}</td></tr>`;
-    });
-    html += '</tbody></table></div>';
   }
 
   cont.innerHTML = html;
@@ -547,6 +552,14 @@ document.getElementById('btn-nueva-receta').addEventListener('click', ()=>{
   abrirEditorVacio();
 });
 document.getElementById('btn-volver-editor').addEventListener('click', ()=> irAVista('recetas'));
+document.getElementById('btn-restaurar').addEventListener('click', ()=>{
+  if(!confirm('Esto reemplaza TODAS tus recetas (incluyendo las que hayas editado) con la versión original cargada en esta app. ¿Continuar?')) return;
+  RECETAS = JSON.parse(JSON.stringify(DATOS_INICIALES));
+  orden = {};
+  guardarDatos(); guardarOrden();
+  mostrarToast('Recetas restauradas');
+  renderListaRecetas(); renderOrden();
+});
 
 /* ============================================================
    EDITOR DE RECETA
